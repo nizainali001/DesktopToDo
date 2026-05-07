@@ -1,0 +1,130 @@
+<Window x:Class="DesktopToDo.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="设置" Height="720" Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="窗口透明度：" FontWeight="Bold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
+            <Slider x:Name="SliderOpacity" Minimum="0.1" Maximum="1.0" Value="0.9" 
+                    Width="250" TickFrequency="0.1" IsSnapToTickEnabled="True" 
+                    ValueChanged="SliderOpacity_ValueChanged"/>
+            <TextBlock x:Name="TxtOpacityValue" Text="90%" Width="50" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Text="字体大小：" FontWeight="Bold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,0,0,15">
+            <Slider x:Name="SliderFontSize" Minimum="10" Maximum="24" Value="14" 
+                    Width="250" TickFrequency="1" IsSnapToTickEnabled="True"
+                    ValueChanged="SliderFontSize_ValueChanged"/>
+            <TextBlock x:Name="TxtFontSizeValue" Text="14" Width="50" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="4" Text="提前提醒分钟数：" FontWeight="Bold" Margin="0,0,0,5"/>
+        <TextBox x:Name="TxtAdvanceMinutes" Grid.Row="5" Width="100" Text="5" HorizontalAlignment="Left" 
+                 VerticalAlignment="Top" Margin="0,0,0,15"/>
+
+        <TextBlock Grid.Row="6" Text="主题颜色：" FontWeight="Bold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="7" Margin="0,0,0,15">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <RadioButton x:Name="RbLightGreen" Content="淡绿色" GroupName="ThemeColor" IsChecked="True" Margin="0,0,20,0"/>
+                <RadioButton x:Name="RbWhite" Content="白色" GroupName="ThemeColor" Margin="0,0,20,0"/>
+                <RadioButton x:Name="RbGray" Content="灰色" GroupName="ThemeColor" Margin="0,0,20,0"/>
+                <RadioButton x:Name="RbCustom" Content="自定义" GroupName="ThemeColor" Checked="RbCustom_Checked"/>
+            </StackPanel>
+            <StackPanel x:Name="CustomColorPanel" Orientation="Horizontal" Visibility="Collapsed" Margin="0,5,0,0">
+                <TextBlock Text="R: " VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtR" Width="50" Text="144" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="G: " VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtG" Width="50" Text="238" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="B: " VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtB" Width="50" Text="144" VerticalContentAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Grid.Row="8" Text="重复类型颜色：" FontWeight="Bold" Margin="0,0,0,5"/>
+        <StackPanel Grid.Row="9" Margin="0,0,0,15">
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="每天" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtDailyColor" Grid.Column="1" Width="100" Text="#00FF00" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="每周" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtWeeklyColor" Grid.Column="1" Width="100" Text="#00FF00" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="每月" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtMonthlyColor" Grid.Column="1" Width="100" Text="#FF0000" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="每季度" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtQuarterlyColor" Grid.Column="1" Width="100" Text="#FF0000" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="每年" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtYearlyColor" Grid.Column="1" Width="100" Text="#000000" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <Grid Margin="0,0,0,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="工作日" FontSize="13" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtWorkdaysColor" Grid.Column="1" Width="100" Text="#00FF00" HorizontalAlignment="Left" VerticalContentAlignment="Center"/>
+            </Grid>
+            <TextBlock Text="格式：#RRGGBB，如 #FF0000 为红色" FontSize="11" Foreground="#999999" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="10" Orientation="Vertical" Margin="0,0,0,15">
+            <CheckBox x:Name="ChkAutoStart" Content="开机自启动" Margin="0,0,0,10"/>
+            <CheckBox x:Name="ChkWallpaperMode" Content="桌面模式（显示在图标之上、窗口之下）" Margin="0,0,0,15"/>
+            <Separator Margin="0,5,0,15"/>
+            <TextBlock Text="数据管理：" FontWeight="Bold" Margin="0,0,0,10"/>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="BtnExport" Content="💾 导出任务" Width="120" Height="30" Margin="0,0,10,0" Click="BtnExport_Click"/>
+                <Button x:Name="BtnImport" Content="📂 导入任务" Width="120" Height="30" Click="BtnImport_Click"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnOK" Content="确定" Width="100" Height="35" Margin="0,0,10,0" Click="BtnOK_Click"/>
+            <Button x:Name="BtnCancel" Content="取消" Width="100" Height="35" Click="BtnCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
