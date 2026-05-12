@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,12 +18,15 @@ namespace DesktopToDo
         public string TaskContent { get; private set; } = string.Empty;
         public List<SubTaskItem> TaskSubTasks { get; private set; } = new List<SubTaskItem>();
         public DateTime? TaskRemindTime { get; private set; }
+        public List<DateTime> TaskAdditionalRemindTimes { get; private set; } = new List<DateTime>();
+        public DateTime? TaskTargetDate { get; private set; }
         public PriorityLevel TaskPriority { get; private set; }
         public RepeatType TaskRepeat { get; private set; }
         public RepeatRuleDetail TaskRepeatDetail { get; private set; } = new RepeatRuleDetail();
 
         private bool _isLoadingSettings = false;
-        private List<SubTaskItem>? _originalSubTasks; // 用于编辑时保留次级任务状态
+        private List<SubTaskItem>? _originalSubTasks;
+        private ObservableCollection<AdditionalReminderItem> _additionalReminders = new ObservableCollection<AdditionalReminderItem>();
 
         public TaskEditWindow(TaskItem? task = null)
         {
@@ -28,20 +34,18 @@ namespace DesktopToDo
             InitializeCombos();
 
             DpRemindDate.SelectedDate = DateTime.Now;
+            AdditionalRemindersList.ItemsSource = _additionalReminders;
 
             if (task != null)
             {
                 this.Title = "编辑任务";
-                // 保存原始次级任务列表用于状态匹配
                 _originalSubTasks = task.SubTasks;
 
-                // 回填：主任务 + 次级清单（已完成的标记为 ☑）
                 if (task.SubTasks != null && task.SubTasks.Count > 0)
                 {
                     var lines = new List<string> { task.Content };
                     foreach (var sub in task.SubTasks)
                     {
-                        // 已完成的任务前加 ☑ 标记
                         var prefix = sub.IsChecked ? "☑ " : "";
                         lines.Add(prefix + sub.Text);
                     }
@@ -58,9 +62,26 @@ namespace DesktopToDo
                     DpRemindDate.SelectedDate = task.RemindTime.Value.Date;
                     TxtRemindTime.Text = task.RemindTime.Value.ToString("HH:mm");
                 }
+
+                // 加载额外提醒时间
+                if (task.AdditionalRemindTimes != null && task.AdditionalRemindTimes.Count > 0)
+                {
+                    foreach (var rt in task.AdditionalRemindTimes)
+                    {
+                        _additionalReminders.Add(new AdditionalReminderItem(rt));
+                    }
+                    UpdateAdditionalRemindersVisibility();
+                }
+
+                // 加载目标日期
+                ChkHasTargetDate.IsChecked = task.TargetDate.HasValue;
+                if (task.TargetDate.HasValue)
+                {
+                    DpTargetDate.SelectedDate = task.TargetDate.Value.Date;
+                }
+
                 CmbPriority.SelectedIndex = (int)task.Priority;
 
-                // 先设置标志，再加载重复设置（避免触发 SelectionChanged 事件时控件未初始化）
                 _isLoadingSettings = true;
                 LoadTaskRepeatSettings(task);
                 _isLoadingSettings = false;
@@ -96,6 +117,55 @@ namespace DesktopToDo
                 CmbYearlyDay.Items.Add(item);
             }
             CmbYearlyDay.SelectedIndex = 0;
+        }
+
+        private void ChkHasRemind_Changed(object sender, RoutedEventArgs e)
+        {
+            if (DpRemindDate == null) return;
+            bool isEnabled = ChkHasRemind.IsChecked == true;
+            ReminderPanel.Visibility = isEnabled ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ChkHasTargetDate_Changed(object sender, RoutedEventArgs e)
+        {
+            if (DpTargetDate == null) return;
+            bool isEnabled = ChkHasTargetDate.IsChecked == true;
+            TargetDatePanel.Visibility = isEnabled ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BtnAddReminder_Click(object sender, RoutedEventArgs e)
+        {
+            var defaultDate = DpRemindDate.SelectedDate ?? DateTime.Now;
+            var defaultTime = TxtRemindTime.Text;
+            if (!TimeSpan.TryParse(defaultTime, out _))
+                defaultTime = "09:00";
+
+            _additionalReminders.Add(new AdditionalReminderItem(defaultDate, defaultTime));
+            UpdateAdditionalRemindersVisibility();
+        }
+
+        private void BtnRemoveReminder_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is AdditionalReminderItem item)
+            {
+                _additionalReminders.Remove(item);
+                UpdateAdditionalRemindersVisibility();
+            }
+        }
+
+        private void AdditionalReminderDate_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            // DatePicker binding handles it via INotifyPropertyChanged
+        }
+
+        private void AdditionalReminderTime_Changed(object sender, TextChangedEventArgs e)
+        {
+            // TextBox binding handles it via INotifyPropertyChanged
+        }
+
+        private void UpdateAdditionalRemindersVisibility()
+        {
+            AdditionalRemindersPanel.Visibility = _additionalReminders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void LoadTaskRepeatSettings(TaskItem task)
@@ -160,10 +230,7 @@ namespace DesktopToDo
 
         private void LoadWeekdays(List<DayOfWeek> days)
         {
-            foreach (var day in days)
-            {
-                SetWeekdayCheckBox(day, true);
-            }
+            foreach (var day in days) SetWeekdayCheckBox(day, true);
         }
 
         private void LoadSingleWeekday(DayOfWeek day)
@@ -174,10 +241,7 @@ namespace DesktopToDo
         private void SetWeekdayCheckBox(DayOfWeek day, bool isChecked)
         {
             var checkBox = GetWeekdayCheckBox(day);
-            if (checkBox != null)
-            {
-                checkBox.IsChecked = isChecked;
-            }
+            if (checkBox != null) checkBox.IsChecked = isChecked;
         }
 
         private CheckBox? GetWeekdayCheckBox(DayOfWeek day)
@@ -201,10 +265,7 @@ namespace DesktopToDo
             {
                 var item = cmb.Items[i] as ComboBoxItem;
                 if (item != null && int.TryParse(item.Tag.ToString(), out int tag) && tag == day)
-                {
-                    cmb.SelectedIndex = i;
-                    return;
-                }
+                { cmb.SelectedIndex = i; return; }
             }
             cmb.SelectedIndex = 0;
         }
@@ -215,10 +276,7 @@ namespace DesktopToDo
             {
                 var item = CmbMonthlyWeekNum.Items[i] as ComboBoxItem;
                 if (item != null && int.TryParse(item.Tag.ToString(), out int tag) && tag == weekNumber)
-                {
-                    CmbMonthlyWeekNum.SelectedIndex = i;
-                    return;
-                }
+                { CmbMonthlyWeekNum.SelectedIndex = i; return; }
             }
             CmbMonthlyWeekNum.SelectedIndex = 0;
         }
@@ -230,10 +288,7 @@ namespace DesktopToDo
             {
                 var item = cmb.Items[i] as ComboBoxItem;
                 if (item != null && int.TryParse(item.Tag.ToString(), out int itemTag) && itemTag == tag)
-                {
-                    cmb.SelectedIndex = i;
-                    return;
-                }
+                { cmb.SelectedIndex = i; return; }
             }
             cmb.SelectedIndex = 0;
         }
@@ -244,10 +299,7 @@ namespace DesktopToDo
             {
                 var item = CmbYearlyMonth.Items[i] as ComboBoxItem;
                 if (item != null && int.TryParse(item.Tag.ToString(), out int tag) && tag == month)
-                {
-                    CmbYearlyMonth.SelectedIndex = i;
-                    return;
-                }
+                { CmbYearlyMonth.SelectedIndex = i; return; }
             }
             CmbYearlyMonth.SelectedIndex = 0;
         }
@@ -258,27 +310,14 @@ namespace DesktopToDo
             {
                 var item = CmbQuarterlyMonth.Items[i] as ComboBoxItem;
                 if (item != null && int.TryParse(item.Tag.ToString(), out int tag) && tag == month)
-                {
-                    CmbQuarterlyMonth.SelectedIndex = i;
-                    return;
-                }
+                { CmbQuarterlyMonth.SelectedIndex = i; return; }
             }
             CmbQuarterlyMonth.SelectedIndex = 0;
         }
 
-        private void ChkHasRemind_Changed(object sender, RoutedEventArgs e)
-        {
-            if (DpRemindDate == null) return;
-
-            bool isEnabled = ChkHasRemind.IsChecked == true;
-            ReminderPanel.Visibility = isEnabled ? Visibility.Visible : Visibility.Collapsed;
-        }
-
         private void CmbRepeat_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // 如果在加载设置过程中，跳过事件处理
             if (_isLoadingSettings) return;
-
             if (DailyPanel == null) return;
 
             DailyPanel.Visibility = Visibility.Collapsed;
@@ -294,24 +333,12 @@ namespace DesktopToDo
                 {
                     switch (tag)
                     {
-                        case 1:
-                            DailyPanel.Visibility = Visibility.Visible;
-                            break;
-                        case 2:
-                            WeeklyPanel.Visibility = Visibility.Visible;
-                            break;
-                        case 3:
-                            MonthlyPanel.Visibility = Visibility.Visible;
-                            break;
-                        case 4:
-                            QuarterlyPanel.Visibility = Visibility.Visible;
-                            break;
-                        case 5:
-                            YearlyPanel.Visibility = Visibility.Visible;
-                            break;
-                        case 6:
-                            SetWorkdays();
-                            break;
+                        case 1: DailyPanel.Visibility = Visibility.Visible; break;
+                        case 2: WeeklyPanel.Visibility = Visibility.Visible; break;
+                        case 3: MonthlyPanel.Visibility = Visibility.Visible; break;
+                        case 4: QuarterlyPanel.Visibility = Visibility.Visible; break;
+                        case 5: YearlyPanel.Visibility = Visibility.Visible; break;
+                        case 6: SetWorkdays(); break;
                     }
                 }
             }
@@ -319,13 +346,9 @@ namespace DesktopToDo
 
         private void SetWorkdays()
         {
-            ChkMon.IsChecked = true;
-            ChkTue.IsChecked = true;
-            ChkWed.IsChecked = true;
-            ChkThu.IsChecked = true;
-            ChkFri.IsChecked = true;
-            ChkSat.IsChecked = false;
-            ChkSun.IsChecked = false;
+            ChkMon.IsChecked = true; ChkTue.IsChecked = true; ChkWed.IsChecked = true;
+            ChkThu.IsChecked = true; ChkFri.IsChecked = true;
+            ChkSat.IsChecked = false; ChkSun.IsChecked = false;
         }
 
         private void RbMonthly_Checked(object sender, RoutedEventArgs e)
@@ -343,14 +366,8 @@ namespace DesktopToDo
 
         private void RbEnd_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (!RbEndAfter.IsChecked == true)
-            {
-                TxtEndAfterCount.IsEnabled = false;
-            }
-            if (!RbEndOnDate.IsChecked == true)
-            {
-                DpEndDate.IsEnabled = false;
-            }
+            if (RbEndAfter.IsChecked != true) TxtEndAfterCount.IsEnabled = false;
+            if (RbEndOnDate.IsChecked != true) DpEndDate.IsEnabled = false;
         }
 
         private void BtnOK_Click(object sender, RoutedEventArgs e)
@@ -362,7 +379,6 @@ namespace DesktopToDo
                 return;
             }
 
-            // 按回车分段：第一段为主任务，其余为次级清单
             var lines = rawText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             TaskContent = lines[0].Trim();
             TaskSubTasks = new List<SubTaskItem>();
@@ -372,21 +388,13 @@ namespace DesktopToDo
                 var line = lines[i].Trim();
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    // 解析完成标记 ☑ 
                     bool isChecked = line.StartsWith("☑ ");
                     var text = isChecked ? line.Substring(2) : line;
-
-                    // 如果是编辑模式，尝试从原始列表中匹配保留状态
-                    //（用户可能手动添加了 ☑ 标记，优先使用标记的状态）
                     if (!isChecked && _originalSubTasks != null)
                     {
                         var original = _originalSubTasks.FirstOrDefault(s => s.Text == text);
-                        if (original != null)
-                        {
-                            isChecked = original.IsChecked;
-                        }
+                        if (original != null) isChecked = original.IsChecked;
                     }
-
                     TaskSubTasks.Add(new SubTaskItem { Text = text, IsChecked = isChecked });
                 }
             }
@@ -398,7 +406,6 @@ namespace DesktopToDo
                     MessageBox.Show("请选择提醒日期！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
-
                 if (TimeSpan.TryParse(TxtRemindTime.Text, out var time))
                 {
                     TaskRemindTime = DpRemindDate.SelectedDate.Value.Date + time;
@@ -410,12 +417,26 @@ namespace DesktopToDo
                 }
             }
 
+            // 收集额外提醒时间
+            TaskAdditionalRemindTimes = new List<DateTime>();
+            foreach (var item in _additionalReminders)
+            {
+                if (item.Date.HasValue && TimeSpan.TryParse(item.TimeStr, out var t))
+                {
+                    TaskAdditionalRemindTimes.Add(item.Date.Value.Date + t);
+                }
+            }
+
+            // 收集目标日期
+            if (ChkHasTargetDate.IsChecked == true && DpTargetDate.SelectedDate.HasValue)
+            {
+                TaskTargetDate = DpTargetDate.SelectedDate.Value.Date;
+            }
+
             if (CmbPriority.SelectedItem is ComboBoxItem priorityItem && priorityItem.Tag != null)
             {
                 if (int.TryParse(priorityItem.Tag.ToString(), out int priorityValue))
-                {
                     TaskPriority = (PriorityLevel)priorityValue;
-                }
             }
 
             TaskRepeatDetail = new RepeatRuleDetail();
@@ -440,9 +461,7 @@ namespace DesktopToDo
             if (TaskRepeat == RepeatType.Daily)
             {
                 if (int.TryParse(TxtDailyInterval.Text, out int interval))
-                {
                     TaskRepeatDetail.RepeatInterval = interval;
-                }
             }
             else if (TaskRepeat == RepeatType.Weekly || TaskRepeat == RepeatType.Workdays)
             {
@@ -454,94 +473,56 @@ namespace DesktopToDo
                 if (ChkFri.IsChecked == true) selectedDays.Add(DayOfWeek.Friday);
                 if (ChkSat.IsChecked == true) selectedDays.Add(DayOfWeek.Saturday);
                 if (ChkSun.IsChecked == true) selectedDays.Add(DayOfWeek.Sunday);
-
-                if (selectedDays.Count > 0)
-                {
-                    TaskRepeatDetail.WeeklyDays = selectedDays;
-                }
+                if (selectedDays.Count > 0) TaskRepeatDetail.WeeklyDays = selectedDays;
             }
             else if (TaskRepeat == RepeatType.Monthly)
             {
                 if (RbMonthlyDay.IsChecked == true)
                 {
                     if (CmbMonthlyDay.SelectedItem is ComboBoxItem dayItem && dayItem.Tag != null)
-                    {
                         if (int.TryParse(dayItem.Tag.ToString(), out int dayValue))
-                        {
                             TaskRepeatDetail.MonthlyDay = dayValue;
-                        }
-                    }
                 }
                 else if (RbMonthlyWeek.IsChecked == true)
                 {
                     if (CmbMonthlyWeekNum.SelectedItem is ComboBoxItem weekNumItem && weekNumItem.Tag != null)
-                    {
                         if (int.TryParse(weekNumItem.Tag.ToString(), out int weekNumValue))
-                        {
                             TaskRepeatDetail.MonthlyWeekNumber = weekNumValue;
-                        }
-                    }
                     if (CmbMonthlyWeekDay.SelectedItem is ComboBoxItem weekDayItem && weekDayItem.Tag != null)
-                    {
                         if (int.TryParse(weekDayItem.Tag.ToString(), out int weekDayValue))
-                        {
                             TaskRepeatDetail.MonthlyWeekDay = (DayOfWeek)weekDayValue;
-                        }
-                    }
                 }
                 else if (RbMonthlyLastDay.IsChecked == true)
-                {
                     TaskRepeatDetail.IsMonthlyLastDay = true;
-                }
             }
             else if (TaskRepeat == RepeatType.Quarterly)
             {
                 if (CmbQuarterlyMonth.SelectedItem is ComboBoxItem monthItem && monthItem.Tag != null)
-                {
                     if (int.TryParse(monthItem.Tag.ToString(), out int monthValue))
-                    {
                         TaskRepeatDetail.QuarterlyMonth = monthValue;
-                    }
-                }
                 if (CmbQuarterlyDay.SelectedItem is ComboBoxItem dayItem && dayItem.Tag != null)
-                {
                     if (int.TryParse(dayItem.Tag.ToString(), out int dayValue))
-                    {
                         TaskRepeatDetail.QuarterlyDay = dayValue;
-                    }
-                }
             }
             else if (TaskRepeat == RepeatType.Yearly)
             {
                 if (CmbYearlyMonth.SelectedItem is ComboBoxItem monthItem && monthItem.Tag != null)
-                {
                     if (int.TryParse(monthItem.Tag.ToString(), out int monthValue))
-                    {
                         TaskRepeatDetail.YearlyMonth = monthValue;
-                    }
-                }
                 if (CmbYearlyDay.SelectedItem is ComboBoxItem dayItem && dayItem.Tag != null)
-                {
                     if (int.TryParse(dayItem.Tag.ToString(), out int dayValue))
-                    {
                         TaskRepeatDetail.YearlyDay = dayValue;
-                    }
-                }
             }
 
             if (RbEndAfter.IsChecked == true)
             {
                 if (int.TryParse(TxtEndAfterCount.Text, out int count))
-                {
                     TaskRepeatDetail.EndAfterOccurrences = count;
-                }
             }
             else if (RbEndOnDate.IsChecked == true)
             {
                 if (DpEndDate.SelectedDate.HasValue)
-                {
                     TaskRepeatDetail.EndDate = DpEndDate.SelectedDate.Value;
-                }
             }
         }
 
@@ -554,33 +535,75 @@ namespace DesktopToDo
         private void Button_MouseEnter(object sender, MouseEventArgs e)
         {
             if (sender is Button button)
-            {
                 button.Background = new SolidColorBrush(Color.FromRgb(0xE0, 0xE0, 0xE0));
-            }
         }
 
         private void Button_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is Button button)
-            {
                 button.Background = new SolidColorBrush(Color.FromRgb(0xF5, 0xF5, 0xF5));
-            }
         }
 
         private void BtnOK_MouseEnter(object sender, MouseEventArgs e)
         {
             if (sender is Button button)
-            {
                 button.Background = new SolidColorBrush(Color.FromRgb(0x00, 0x66, 0xCC));
-            }
         }
 
         private void BtnOK_MouseLeave(object sender, MouseEventArgs e)
         {
             if (sender is Button button)
-            {
                 button.Background = new SolidColorBrush(Color.FromRgb(0x00, 0x7A, 0xFF));
+        }
+    }
+
+    /// <summary>
+    /// 额外提醒时间的展示模型
+    /// </summary>
+    public class AdditionalReminderItem : INotifyPropertyChanged
+    {
+        private DateTime? _date;
+        private string _timeStr;
+
+        public DateTime? Date
+        {
+            get => _date;
+            set { _date = value; OnPropertyChanged(); OnPropertyChanged(nameof(RemindTimeStr)); }
+        }
+
+        public string TimeStr
+        {
+            get => _timeStr;
+            set { _timeStr = value; OnPropertyChanged(); OnPropertyChanged(nameof(RemindTimeStr)); }
+        }
+
+        public string RemindTimeStr
+        {
+            get
+            {
+                if (Date.HasValue && TimeSpan.TryParse(TimeStr, out var t))
+                    return $"{Date.Value:yyyy-MM-dd} {TimeStr}";
+                return "未设置";
             }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        public AdditionalReminderItem(DateTime? date = null, string timeStr = "09:00")
+        {
+            _date = date;
+            _timeStr = timeStr;
+        }
+
+        public AdditionalReminderItem(DateTime dateTime)
+        {
+            _date = dateTime.Date;
+            _timeStr = dateTime.ToString("HH:mm");
         }
     }
 }

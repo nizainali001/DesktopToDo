@@ -1,219 +1,252 @@
 <Window x:Class="DesktopToDo.TaskEditWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="编辑任务" Height="680" Width="520"
+        Title="编辑任务" Height="700" Width="480"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
-    <Grid Margin="24">
+        ResizeMode="CanResizeWithGrip"
+        MinWidth="400" MinHeight="500">
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="任务内容" FontWeight="SemiBold" FontSize="14" Foreground="#333333" Margin="0,0,0,4"/>
-        <TextBlock Grid.Row="0" Text="第一行为主任务，回车后输入的内容将自动成为次级清单" FontSize="11" Foreground="#999999" Margin="0,18,0,8"/>
-        <TextBox x:Name="TxtContent" Grid.Row="1" Height="100" TextWrapping="Wrap" AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto" FontSize="14" Padding="10"
-                 BorderBrush="#E0E0E0" BorderThickness="1"
-                 Background="#FAFAFA" Margin="0,0,0,20"/>
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" Text="编辑任务" FontSize="18" FontWeight="Bold" Foreground="#333333" Margin="0,0,0,12"/>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,16">
-            <CheckBox x:Name="ChkHasRemind" Content="设置提醒" 
-                      Checked="ChkHasRemind_Changed" Unchecked="ChkHasRemind_Changed" 
-                      VerticalAlignment="Center" FontSize="14" Foreground="#333333"/>
-        </StackPanel>
+        <!-- 可滚动内容 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,12">
+            <StackPanel>
+                <!-- 任务内容 -->
+                <TextBlock Text="任务内容" FontWeight="SemiBold" FontSize="14" Foreground="#333333" Margin="0,0,0,4"/>
+                <TextBlock Text="第一行为主任务，回车后输入的内容将自动成为次级清单" FontSize="11" Foreground="#999999" Margin="0,0,0,6"/>
+                <TextBox x:Name="TxtContent" Height="80" TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto" FontSize="14" Padding="8"
+                         BorderBrush="#E0E0E0" BorderThickness="1"
+                         Background="#FAFAFA" Margin="0,0,0,16"/>
 
-        <Grid Grid.Row="3" Name="ReminderPanel" Visibility="Collapsed" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <DatePicker x:Name="DpRemindDate" Width="160" FontSize="14" Padding="8" 
-                        BorderBrush="#E0E0E0" BorderThickness="1"
-                        Background="#FAFAFA" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtRemindTime" Width="100" Grid.Column="2" FontSize="14" Padding="8"
-                     VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" 
-                     Background="#FAFAFA" Text="09:00"/>
-        </Grid>
+                <!-- 提醒设置 -->
+                <CheckBox x:Name="ChkHasRemind" Content="设置提醒" Margin="0,0,0,8"
+                          Checked="ChkHasRemind_Changed" Unchecked="ChkHasRemind_Changed" 
+                          FontSize="14" Foreground="#333333"/>
 
-        <Grid Grid.Row="4" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="重要等级" FontSize="14" Foreground="#333333" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CmbPriority" Grid.Column="2" Width="100" FontSize="14" Padding="8,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
-                <ComboBoxItem Content="低" Tag="0"/>
-                <ComboBoxItem Content="普通" Tag="1" IsSelected="True"/>
-                <ComboBoxItem Content="高" Tag="2"/>
-                <ComboBoxItem Content="紧急" Tag="3"/>
-            </ComboBox>
-        </Grid>
+                <!-- 主提醒时间 -->
+                <StackPanel x:Name="ReminderPanel" Visibility="Collapsed" Margin="24,0,0,12" Orientation="Horizontal">
+                    <TextBlock Text="提醒时间：" FontSize="13" Foreground="#666666" VerticalAlignment="Center" Width="70"/>
+                    <DatePicker x:Name="DpRemindDate" Width="130" FontSize="13" Padding="4" 
+                                BorderBrush="#E0E0E0" BorderThickness="1"
+                                Background="#FAFAFA" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtRemindTime" Width="60" Margin="8,0,8,0" FontSize="13" Padding="4"
+                             VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" 
+                             Background="#FAFAFA" Text="09:00"/>
+                    <Button x:Name="BtnAddReminder" Content="➕ 添加提醒" 
+                            ToolTip="增加提醒时间" Click="BtnAddReminder_Click"
+                            Background="#F0F0F0" BorderBrush="#E0E0E0" BorderThickness="1"
+                            Padding="8,4" FontSize="12" Cursor="Hand"/>
+                </StackPanel>
 
-        <TextBlock Grid.Row="5" Text="重复规则" FontSize="14" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,12"/>
-        
-        <Grid Grid.Row="6" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <ComboBox x:Name="CmbRepeat" Width="140" FontSize="14" Padding="8,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"
-                      SelectionChanged="CmbRepeat_SelectionChanged">
-                <ComboBoxItem Content="不重复" Tag="0" IsSelected="True"/>
-                <ComboBoxItem Content="每天" Tag="1"/>
-                <ComboBoxItem Content="每周" Tag="2"/>
-                <ComboBoxItem Content="每月" Tag="3"/>
-                <ComboBoxItem Content="每季度" Tag="4"/>
-                <ComboBoxItem Content="每年" Tag="5"/>
-                <ComboBoxItem Content="工作日" Tag="6"/>
-            </ComboBox>
-        </Grid>
+                <!-- 额外提醒时间列表 -->
+                <StackPanel x:Name="AdditionalRemindersPanel" Visibility="Collapsed" Margin="24,0,0,16">
+                    <TextBlock Text="额外提醒：" FontSize="12" Foreground="#888888" Margin="0,0,0,6"/>
+                    <ItemsControl x:Name="AdditionalRemindersList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#E8E8E8" BorderThickness="1" CornerRadius="4" 
+                                        Background="#F9F9F9" Padding="8" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <!-- 第一行：日期和时间 -->
+                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                                            <DatePicker SelectedDate="{Binding Date}" Width="120" FontSize="12" Padding="2"
+                                                        BorderBrush="#E0E0E0" BorderThickness="1" Background="White" 
+                                                        VerticalAlignment="Center"
+                                                        SelectedDateChanged="AdditionalReminderDate_Changed"/>
+                                            <TextBox Text="{Binding TimeStr}" Width="55" Margin="8,0,0,0" FontSize="12" Padding="4"
+                                                     VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" 
+                                                     Background="White" TextChanged="AdditionalReminderTime_Changed"/>
+                                        </StackPanel>
+                                        
+                                        <!-- 删除按钮 -->
+                                        <Button Grid.Row="0" Grid.Column="1" Content="删除" 
+                                                Foreground="#FF3333" Click="BtnRemoveReminder_Click" Tag="{Binding}"
+                                                Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                FontSize="12" Padding="4,2"/>
+                                        
+                                        <!-- 预览文本 -->
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                   Text="{Binding RemindTimeStr}" FontSize="11" Foreground="#999999" 
+                                                   Margin="0,4,0,0"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
 
-        <StackPanel Grid.Row="7" Name="DailyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
-            <TextBlock Text="每" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-            <TextBox x:Name="TxtDailyInterval" Width="60" Text="1" Margin="8,0,8,0" FontSize="13" Padding="6,4"
-                     VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
-            <TextBlock Text="天" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-        </StackPanel>
+                <!-- 目标日期 -->
+                <CheckBox x:Name="ChkHasTargetDate" Content="设置目标日期（日期倒数）" Margin="0,0,0,8"
+                          Checked="ChkHasTargetDate_Changed" Unchecked="ChkHasTargetDate_Changed"
+                          FontSize="14" Foreground="#333333"/>
+                <StackPanel x:Name="TargetDatePanel" Visibility="Collapsed" Margin="24,0,0,16" Orientation="Horizontal">
+                    <TextBlock Text="目标日期：" FontSize="13" Foreground="#666666" VerticalAlignment="Center" Width="70"/>
+                    <DatePicker x:Name="DpTargetDate" Width="130" FontSize="13" Padding="4"
+                                BorderBrush="#E0E0E0" BorderThickness="1"
+                                Background="#FAFAFA" VerticalAlignment="Center"/>
+                </StackPanel>
 
-        <StackPanel Grid.Row="7" Name="WeeklyPanel" Visibility="Collapsed" Margin="0,0,0,12">
-            <TextBlock Text="选择星期" FontSize="13" Foreground="#666666" Margin="0,0,0,8"/>
-            <WrapPanel>
-                <CheckBox x:Name="ChkMon" Content="周一" Tag="1" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkTue" Content="周二" Tag="2" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkWed" Content="周三" Tag="3" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkThu" Content="周四" Tag="4" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkFri" Content="周五" Tag="5" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkSat" Content="周六" Tag="6" Margin="0,0,12,6" FontSize="13"/>
-                <CheckBox x:Name="ChkSun" Content="周日" Tag="0" Margin="0,0,12,6" FontSize="13"/>
-            </WrapPanel>
-        </StackPanel>
+                <!-- 优先级 -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <TextBlock Text="重要等级" FontSize="14" Foreground="#333333" VerticalAlignment="Center" Width="70"/>
+                    <ComboBox x:Name="CmbPriority" Width="100" FontSize="14" Padding="6,4"
+                              BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
+                        <ComboBoxItem Content="低" Tag="0"/>
+                        <ComboBoxItem Content="普通" Tag="1" IsSelected="True"/>
+                        <ComboBoxItem Content="高" Tag="2"/>
+                        <ComboBoxItem Content="紧急" Tag="3"/>
+                    </ComboBox>
+                </StackPanel>
 
-        <StackPanel Grid.Row="7" Name="MonthlyPanel" Visibility="Collapsed" Margin="0,0,0,12">
-            <RadioButton x:Name="RbMonthlyDay" Margin="0,0,0,8" FontSize="13" Checked="RbMonthly_Checked">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="每月" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="CmbMonthlyDay" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
+                <!-- 重复规则 -->
+                <TextBlock Text="重复规则" FontSize="14" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,10"/>
+                <ComboBox x:Name="CmbRepeat" Width="140" FontSize="14" Padding="6,4" Margin="0,0,0,10"
+                          BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"
+                          SelectionChanged="CmbRepeat_SelectionChanged">
+                    <ComboBoxItem Content="不重复" Tag="0" IsSelected="True"/>
+                    <ComboBoxItem Content="每天" Tag="1"/>
+                    <ComboBoxItem Content="每周" Tag="2"/>
+                    <ComboBoxItem Content="每月" Tag="3"/>
+                    <ComboBoxItem Content="每季度" Tag="4"/>
+                    <ComboBoxItem Content="每年" Tag="5"/>
+                    <ComboBoxItem Content="工作日" Tag="6"/>
+                </ComboBox>
+
+                <!-- 重复规则详情面板 -->
+                <StackPanel x:Name="DailyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
+                    <TextBlock Text="每" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtDailyInterval" Width="50" Text="1" Margin="8,0,8,0" FontSize="13" Padding="4"
+                             VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
+                    <TextBlock Text="天" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel x:Name="WeeklyPanel" Visibility="Collapsed" Margin="0,0,0,12">
+                    <TextBlock Text="选择星期" FontSize="13" Foreground="#666666" Margin="0,0,0,6"/>
+                    <WrapPanel>
+                        <CheckBox x:Name="ChkMon" Content="周一" Tag="1" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkTue" Content="周二" Tag="2" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkWed" Content="周三" Tag="3" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkThu" Content="周四" Tag="4" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkFri" Content="周五" Tag="5" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkSat" Content="周六" Tag="6" Margin="0,0,12,4" FontSize="13"/>
+                        <CheckBox x:Name="ChkSun" Content="周日" Tag="0" Margin="0,0,12,4" FontSize="13"/>
+                    </WrapPanel>
+                </StackPanel>
+
+                <StackPanel x:Name="MonthlyPanel" Visibility="Collapsed" Margin="0,0,0,12">
+                    <RadioButton x:Name="RbMonthlyDay" Margin="0,0,0,6" FontSize="13" Checked="RbMonthly_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="每月" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="CmbMonthlyDay" Width="60" Margin="8,0,0,0" FontSize="13" Padding="4"
+                                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
+                            <TextBlock Text="日" FontSize="13" Foreground="#666666" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="RbMonthlyWeek" Margin="0,0,0,6" FontSize="13" Checked="RbMonthly_Checked">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="每月" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="CmbMonthlyWeekNum" Width="70" Margin="8,0,0,0" FontSize="13" Padding="4"
+                                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
+                                <ComboBoxItem Content="第一个" Tag="1" IsSelected="True"/>
+                                <ComboBoxItem Content="第二个" Tag="2"/>
+                                <ComboBoxItem Content="第三个" Tag="3"/>
+                                <ComboBoxItem Content="第四个" Tag="4"/>
+                                <ComboBoxItem Content="最后一个" Tag="5"/>
+                            </ComboBox>
+                            <ComboBox x:Name="CmbMonthlyWeekDay" Width="60" Margin="8,0,0,0" FontSize="13" Padding="4"
+                                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
+                                <ComboBoxItem Content="周一" Tag="1" IsSelected="True"/>
+                                <ComboBoxItem Content="周二" Tag="2"/>
+                                <ComboBoxItem Content="周三" Tag="3"/>
+                                <ComboBoxItem Content="周四" Tag="4"/>
+                                <ComboBoxItem Content="周五" Tag="5"/>
+                                <ComboBoxItem Content="周六" Tag="6"/>
+                                <ComboBoxItem Content="周日" Tag="0"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="RbMonthlyLastDay" Content="每月最后一天" FontSize="13" Checked="RbMonthly_Checked"/>
+                </StackPanel>
+
+                <StackPanel x:Name="QuarterlyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
+                    <TextBlock Text="每季度" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CmbQuarterlyMonth" Width="70" Margin="8,0,0,0" FontSize="13" Padding="4"
+                              BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
+                        <ComboBoxItem Content="第1月" Tag="1" IsSelected="True"/>
+                        <ComboBoxItem Content="第2月" Tag="2"/>
+                        <ComboBoxItem Content="第3月" Tag="3"/>
+                    </ComboBox>
+                    <ComboBox x:Name="CmbQuarterlyDay" Width="60" Margin="8,0,0,0" FontSize="13" Padding="4"
                               BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
-                    <TextBlock Text="日" FontSize="13" Foreground="#666666" Margin="6,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
-            </RadioButton>
-            <RadioButton x:Name="RbMonthlyWeek" Margin="0,0,0,8" FontSize="13" Checked="RbMonthly_Checked">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="每月" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="CmbMonthlyWeekNum" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
+
+                <StackPanel x:Name="YearlyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
+                    <TextBlock Text="每年" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CmbYearlyMonth" Width="60" Margin="8,0,0,0" FontSize="13" Padding="4"
                               BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
-                        <ComboBoxItem Content="第一个" Tag="1" IsSelected="True"/>
-                        <ComboBoxItem Content="第二个" Tag="2"/>
-                        <ComboBoxItem Content="第三个" Tag="3"/>
-                        <ComboBoxItem Content="第四个" Tag="4"/>
-                        <ComboBoxItem Content="最后一个" Tag="5"/>
+                        <ComboBoxItem Content="1月" Tag="1" IsSelected="True"/>
+                        <ComboBoxItem Content="2月" Tag="2"/>
+                        <ComboBoxItem Content="3月" Tag="3"/>
+                        <ComboBoxItem Content="4月" Tag="4"/>
+                        <ComboBoxItem Content="5月" Tag="5"/>
+                        <ComboBoxItem Content="6月" Tag="6"/>
+                        <ComboBoxItem Content="7月" Tag="7"/>
+                        <ComboBoxItem Content="8月" Tag="8"/>
+                        <ComboBoxItem Content="9月" Tag="9"/>
+                        <ComboBoxItem Content="10月" Tag="10"/>
+                        <ComboBoxItem Content="11月" Tag="11"/>
+                        <ComboBoxItem Content="12月" Tag="12"/>
                     </ComboBox>
-                    <ComboBox x:Name="CmbMonthlyWeekDay" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
-                              BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
-                        <ComboBoxItem Content="周一" Tag="1" IsSelected="True"/>
-                        <ComboBoxItem Content="周二" Tag="2"/>
-                        <ComboBoxItem Content="周三" Tag="3"/>
-                        <ComboBoxItem Content="周四" Tag="4"/>
-                        <ComboBoxItem Content="周五" Tag="5"/>
-                        <ComboBoxItem Content="周六" Tag="6"/>
-                        <ComboBoxItem Content="周日" Tag="0"/>
-                    </ComboBox>
+                    <ComboBox x:Name="CmbYearlyDay" Width="60" Margin="8,0,0,0" FontSize="13" Padding="4"
+                              BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
                 </StackPanel>
-            </RadioButton>
-            <RadioButton x:Name="RbMonthlyLastDay" Content="每月最后一天" FontSize="13" Checked="RbMonthly_Checked"/>
-        </StackPanel>
 
-        <StackPanel Grid.Row="7" Name="QuarterlyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
-            <TextBlock Text="每季度" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CmbQuarterlyMonth" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
-                <ComboBoxItem Content="第1月" Tag="1" IsSelected="True"/>
-                <ComboBoxItem Content="第2月" Tag="2"/>
-                <ComboBoxItem Content="第3月" Tag="3"/>
-            </ComboBox>
-            <ComboBox x:Name="CmbQuarterlyDay" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
-        </StackPanel>
+                <!-- 结束条件 -->
+                <TextBlock Text="结束条件" FontSize="14" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,10"/>
+                <RadioButton x:Name="RbNeverEnd" Content="永不结束" IsChecked="True" 
+                          Margin="0,0,0,6" FontSize="13"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <RadioButton x:Name="RbEndAfter" Content="结束于" FontSize="13"
+                              Checked="RbEnd_Checked" Unchecked="RbEnd_Unchecked" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtEndAfterCount" Width="50" Text="10" Margin="8,0,4,0" FontSize="13" Padding="4"
+                             VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" 
+                             Background="#FAFAFA" IsEnabled="False"/>
+                    <TextBlock Text="次" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <RadioButton x:Name="RbEndOnDate" Content="结束于日期" FontSize="13"
+                              Checked="RbEnd_Checked" Unchecked="RbEnd_Unchecked" VerticalAlignment="Center"/>
+                    <DatePicker x:Name="DpEndDate" Width="130" FontSize="13" Padding="4" Margin="8,0,0,0"
+                              BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA" IsEnabled="False"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
 
-        <StackPanel Grid.Row="7" Name="YearlyPanel" Visibility="Collapsed" Margin="0,0,0,12" Orientation="Horizontal">
-            <TextBlock Text="每年" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-            <ComboBox x:Name="CmbYearlyMonth" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA">
-                <ComboBoxItem Content="1月" Tag="1" IsSelected="True"/>
-                <ComboBoxItem Content="2月" Tag="2"/>
-                <ComboBoxItem Content="3月" Tag="3"/>
-                <ComboBoxItem Content="4月" Tag="4"/>
-                <ComboBoxItem Content="5月" Tag="5"/>
-                <ComboBoxItem Content="6月" Tag="6"/>
-                <ComboBoxItem Content="7月" Tag="7"/>
-                <ComboBoxItem Content="8月" Tag="8"/>
-                <ComboBoxItem Content="9月" Tag="9"/>
-                <ComboBoxItem Content="10月" Tag="10"/>
-                <ComboBoxItem Content="11月" Tag="11"/>
-                <ComboBoxItem Content="12月" Tag="12"/>
-            </ComboBox>
-            <ComboBox x:Name="CmbYearlyDay" Width="70" Margin="8,0,0,0" FontSize="13" Padding="6,4"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA"/>
-        </StackPanel>
-
-        <TextBlock Grid.Row="8" Text="结束条件" FontSize="14" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,12"/>
-
-        <Grid Grid.Row="9" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <RadioButton x:Name="RbNeverEnd" Content="永不结束" IsChecked="True" 
-                      Margin="0,0,0,6" FontSize="13"/>
-            <RadioButton x:Name="RbEndAfter" Content="结束于" Margin="0,0,0,6" Grid.Column="2" FontSize="13"
-                      Checked="RbEnd_Checked" Unchecked="RbEnd_Unchecked"/>
-            <TextBox x:Name="TxtEndAfterCount" Width="60" Grid.Column="4" Text="10" FontSize="13" Padding="6,4"
-                     VerticalContentAlignment="Center" BorderBrush="#E0E0E0" BorderThickness="1" 
-                     Background="#FAFAFA" IsEnabled="False"/>
-            <TextBlock Text="次" Grid.Column="5" FontSize="13" Foreground="#666666" VerticalAlignment="Center"/>
-        </Grid>
-
-        <Grid Grid.Row="10" Margin="0,0,0,24" Name="EndDateGrid">
-            <RadioButton x:Name="RbEndOnDate" Content="结束于日期" Margin="0,0,0,6" FontSize="13"
-                      Checked="RbEnd_Checked" Unchecked="RbEnd_Unchecked"/>
-            <DatePicker x:Name="DpEndDate" Width="180" FontSize="14" Padding="8" Margin="20,20,0,0"
-                      BorderBrush="#E0E0E0" BorderThickness="1" Background="#FAFAFA" IsEnabled="False"/>
-        </Grid>
-
-        <StackPanel Grid.Row="12" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="BtnCancel" Content="取消" Width="90" Height="36" Margin="0,0,12,0" 
-                      Click="BtnCancel_Click" FontSize="14"
-                      Background="#F5F5F5" Foreground="#666666" BorderBrush="#E0E0E0" BorderThickness="1"
-                      MouseEnter="Button_MouseEnter" MouseLeave="Button_MouseLeave"/>
-            <Button x:Name="BtnOK" Content="确定" Width="90" Height="36" 
-                      Click="BtnOK_Click" FontSize="14"
-                      Background="#007AFF" Foreground="White" BorderBrush="#007AFF" BorderThickness="1"
-                      MouseEnter="BtnOK_MouseEnter" MouseLeave="BtnOK_MouseLeave"/>
+        <!-- 底部按钮 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnCancel" Content="取消" Width="80" Height="32" Margin="0,0,10,0" 
+                      Click="BtnCancel_Click" FontSize="13"
+                      Background="#F5F5F5" Foreground="#666666" BorderBrush="#E0E0E0" BorderThickness="1"/>
+            <Button x:Name="BtnOK" Content="确定" Width="80" Height="32" 
+                      Click="BtnOK_Click" FontSize="13"
+                      Background="#007AFF" Foreground="White" BorderBrush="#007AFF" BorderThickness="1"/>
         </StackPanel>
     </Grid>
 </Window>

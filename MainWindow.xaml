@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="极简透明桌面待办清单"
-        Height="600" Width="500"
+        Height="600" Width="420"
         x:Name="MainWindowRoot"
         WindowStyle="None"
         AllowsTransparency="True"
@@ -18,43 +18,55 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
 
-        <!-- 任务卡片样式 -->
+        <!-- 任务卡片样式 - 透明背景 -->
         <Style x:Key="TaskCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="#55FFFFFF"/>
+            <Setter Property="Background" Value="#15FFFFFF"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-            <Setter Property="BorderBrush" Value="#22FFFFFF"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
 
-        <!-- 已完成任务卡片样式 -->
+        <!-- 选中卡片样式 - 带边框高亮 -->
+        <Style x:Key="SelectedCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#25FFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#60A5FA"/>
+        </Style>
+
+        <!-- 已完成卡片样式 - 更淡的透明 -->
         <Style x:Key="CompletedCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="#33FFFFFF"/>
+            <Setter Property="Background" Value="#0AFFFFFF"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="Margin" Value="0,0,0,6"/>
-            <Setter Property="BorderBrush" Value="#15FFFFFF"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
         </Style>
 
-        <!-- 操作按钮样式 -->
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="28"/>
-            <Setter Property="Height" Value="28"/>
+        <!-- 圆形操作按钮 -->
+        <Style x:Key="CircleButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Margin" Value="3,0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="BtnBorder" Background="Transparent" CornerRadius="6"
+                        <Border x:Name="BtnCircle" CornerRadius="15" Background="{TemplateBinding Background}"
                                 Padding="0" BorderThickness="0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#30FFFFFF"/>
+                                <Setter TargetName="BtnCircle" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.1" ScaleY="1.1" CenterX="15" CenterY="15"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -62,21 +74,21 @@
             </Setter>
         </Style>
 
-        <!-- 顶部按钮样式 -->
-        <Style x:Key="HeaderButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="FontSize" Value="13"/>
+        <!-- 顶部图标按钮 -->
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="36"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="BtnBorder" Background="#44FFFFFF" CornerRadius="8"
-                                Padding="10,0" BorderThickness="0">
+                        <Border x:Name="BtnBorder" Background="Transparent" CornerRadius="18"
+                                Padding="6" BorderThickness="0">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="#66FFFFFF"/>
+                                <Setter TargetName="BtnBorder" Property="Background" Value="#33FFFFFF"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -84,52 +96,56 @@
             </Setter>
         </Style>
 
-        <!-- 次级清单 CheckBox 样式 -->
+        <!-- 次级清单 CheckBox -->
         <Style x:Key="SubTaskCheckBoxStyle" TargetType="CheckBox">
             <Setter Property="Margin" Value="0,2,0,2"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Style.Resources>
-                <Style TargetType="Border">
-                    <Setter Property="CornerRadius" Value="3"/>
-                </Style>
-            </Style.Resources>
         </Style>
     </Window.Resources>
 
-    <Border x:Name="MainBorder" Background="#CC90EE90" CornerRadius="12" Margin="5">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.15" Color="#000000"/>
-        </Border.Effect>
-        <Grid Margin="12">
+    <!-- 主容器 - 透明背景 -->
+    <Border x:Name="MainBorder" Background="Transparent" CornerRadius="16" Margin="5">
+        <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- 顶部标题栏 -->
-            <Border Grid.Row="0" Background="#30FFFFFF" CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <!-- 标题栏 -->
+            <Grid Grid.Row="0" Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="📋" FontSize="18" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <TextBlock Text="极简待办" FontSize="17" FontWeight="Bold" Foreground="#2D3436" VerticalAlignment="Center"/>
-                    </StackPanel>
+                <!-- 左侧标题 -->
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="待办清单" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button x:Name="BtnAdd" Content="➕ 添加" Style="{StaticResource HeaderButtonStyle}" Margin="0,0,6,0" Click="BtnAdd_Click"/>
-                        <Button x:Name="BtnSettings" Content="⚙️" Style="{StaticResource HeaderButtonStyle}" Margin="0,0,6,0" Click="BtnSettings_Click" Width="32" Padding="0"/>
-                        <Button x:Name="BtnMinimize" Content="—" FontSize="16" FontWeight="Bold" Style="{StaticResource HeaderButtonStyle}" Margin="0,0,4,0" Click="BtnMinimize_Click" Width="32" Padding="0" Foreground="#636E72"/>
-                        <Button x:Name="BtnClose" Content="✕" FontSize="14" FontWeight="Bold" Style="{StaticResource HeaderButtonStyle}" Click="BtnClose_Click" Width="32" Padding="0" Foreground="#636E72"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                <!-- 右侧图标按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="BtnAdd" ToolTip="添加任务" Style="{StaticResource IconButtonStyle}" Click="BtnAdd_Click">
+                        <Path Data="M12,5V19M5,12H19" Stroke="#334155" StrokeThickness="2"
+                              Stretch="Uniform" Width="18" Height="18" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
+                    <Button x:Name="BtnSettings" ToolTip="设置" Style="{StaticResource IconButtonStyle}" Click="BtnSettings_Click">
+                        <Path Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                              Fill="#94A3B8" Stretch="Uniform" Width="18" Height="18"/>
+                    </Button>
+                    <Button x:Name="BtnMinimize" ToolTip="最小化" Style="{StaticResource IconButtonStyle}" Click="BtnMinimize_Click">
+                        <Path Data="M5,12H19" Stroke="#94A3B8" StrokeThickness="2"
+                              Stretch="Uniform" Width="18" Height="18" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
+                    <Button x:Name="BtnClose" ToolTip="关闭" Style="{StaticResource IconButtonStyle}" Click="BtnClose_Click">
+                        <Path Data="M18,6L6,18M6,6L18,18" Stroke="#94A3B8" StrokeThickness="2"
+                              Stretch="Uniform" Width="18" Height="18" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
 
             <!-- 主内容区 -->
             <Grid Grid.Row="1">
@@ -139,70 +155,104 @@
                     <ColumnDefinition Width="0" x:Name="CompletedColumn"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- 待办事项 -->
+                <!-- 待办事项列表 -->
                 <StackPanel Grid.Column="0">
-                    <StackPanel Orientation="Horizontal" Margin="2,0,0,8">
-                        <TextBlock Text="待办事项" FontSize="13" FontWeight="SemiBold" Foreground="#636E72" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="PendingCount" Text="" FontSize="11" Foreground="#B2BEC3" VerticalAlignment="Center" Margin="6,0,0,0"/>
-                    </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500">
                         <ItemsControl x:Name="PendingTasksList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <!-- 任务卡片 -->
-                                    <Border Style="{StaticResource TaskCardStyle}">
+                                    <Border x:Name="TaskCard" MouseLeftButtonDown="TaskCard_MouseLeftButtonDown" Cursor="Hand"
+                                            CornerRadius="8" Padding="12,8" Margin="0" BorderThickness="0">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#15FFFFFF"/>
+                                                <Style.Triggers>
+                                                    <!-- 今日任务淡红色背景 -->
+                                                    <DataTrigger Binding="{Binding IsTodayTask}" Value="True">
+                                                        <Setter Property="Background" Value="#40FF6B6B"/>
+                                                    </DataTrigger>
+                                                    <!-- 选中状态 -->
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="Background" Value="#25FFFFFF"/>
+                                                        <Setter Property="BorderBrush" Value="#60A5FA"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                    </DataTrigger>
+                                                    <!-- 今日任务且选中 -->
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsTodayTask}" Value="True"/>
+                                                            <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Background" Value="#50FF6B6B"/>
+                                                        <Setter Property="BorderBrush" Value="#60A5FA"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- 左侧：标签 + 优先级 -->
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,10,0" VerticalAlignment="Top">
-                                                <TextBlock Text="{Binding RepeatShortLabel}" FontSize="10" FontWeight="Bold" Foreground="{Binding RepeatColor}" VerticalAlignment="Center" Margin="0,0,5,0" Visibility="{Binding HasRepeat, Converter={StaticResource BoolToVisConverter}}"/>
-                                                <Border Width="8" Height="8" CornerRadius="4" Background="{Binding PriorityColor}" ToolTip="{Binding PriorityText}" VerticalAlignment="Center" Margin="0,4,0,0"/>
-                                            </StackPanel>
+                                            <!-- 左侧：序号圆点（与标题垂直居中） -->
+                                            <Grid Grid.Row="0" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                <!-- 置顶标记 -->
+                                                <TextBlock Text="📌" FontSize="10" VerticalAlignment="Top" HorizontalAlignment="Center"
+                                                           Visibility="{Binding IsPinnedVis}" Margin="0,-18,0,0"/>
+                                                <!-- 序号圆点 -->
+                                                <Grid Width="28" Height="28" Visibility="{Binding ShowNumber, Converter={StaticResource BoolToVisConverter}}">
+                                                    <Ellipse Width="28" Height="28" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                             Fill="{Binding TaskNumberBackground}"/>
+                                                    <TextBlock Text="{Binding TaskNumberText}" FontSize="12" FontWeight="Bold" 
+                                                               Foreground="#1F2937" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Grid>
+                                            </Grid>
 
-                                            <!-- 中间：内容 + 次级清单 + 提醒时间 -->
-                                            <StackPanel Grid.Column="1">
-                                                <!-- 主任务内容（可点击展开/折叠） -->
+                                            <!-- 循环标记小圆点（序号后方，默认隐藏） -->
+                                            <Grid Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                  Visibility="{Binding ShowRepeatLabelVis}" Margin="0,0,6,0">
+                                                <Ellipse Width="18" Height="18" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                         Fill="{Binding RepeatLabelBackground}" Opacity="0.8"/>
+                                                <TextBlock Text="{Binding RepeatShortLabel}" FontSize="8" FontWeight="Bold"
+                                                           Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                            </Grid>
+
+                                            <!-- 中间：任务内容（垂直居中） -->
+                                            <StackPanel Grid.Row="0" Grid.Column="2" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <!-- 展开/折叠按钮 -->
-                                                    <Button Content="{Binding ExpandButtonText}" 
+                                                    <Button Content="{Binding ExpandButtonText}"
                                                             Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVisConverter}}"
-                                                            Click="ToggleSubTasks_Click"
-                                                            Tag="{Binding}"
-                                                            Width="20" Height="20"
-                                                            FontSize="10"
-                                                            Foreground="#74B9FF"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Cursor="Hand"
-                                                            Margin="-4,0,2,0"
-                                                            VerticalAlignment="Top"/>
-                                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#2D3436" FontSize="14" FontWeight="Medium" Cursor="Hand" MouseLeftButtonDown="TaskContent_MouseLeftButtonDown">
-                                                        <TextBlock.Tag>
-                                                            <Binding/>
-                                                        </TextBlock.Tag>
-                                                    </TextBlock>
+                                                            Click="ToggleSubTasks_Click" Tag="{Binding}"
+                                                            Width="16" Height="16" FontSize="8"
+                                                            Foreground="#60A5FA" Background="Transparent"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Margin="-2,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap" 
+                                                               Foreground="{Binding TextColorBrush, FallbackValue=#F1F5F9}" FontSize="14" VerticalAlignment="Center"/>
                                                 </StackPanel>
 
-                                                <!-- 次级清单区域 -->
-                                                <ItemsControl ItemsSource="{Binding SubTasks}" Margin="20,6,0,0" Visibility="{Binding SubTasksVisibility}">
+                                                <!-- 次级清单 -->
+                                                <ItemsControl ItemsSource="{Binding SubTasks}" Margin="22,4,0,0" Visibility="{Binding SubTasksVisibility}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <CheckBox Style="{StaticResource SubTaskCheckBoxStyle}"
-                                                                      IsChecked="{Binding IsChecked}"
-                                                                      Click="SubTaskCheck_Click"
-                                                                      Tag="{Binding}">
-                                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12" Foreground="#636E72">
+                                                                      IsChecked="{Binding IsChecked}" Click="SubTaskCheck_Click" Tag="{Binding}">
+                                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12">
                                                                     <TextBlock.Style>
                                                                         <Style TargetType="TextBlock">
+                                                                            <Setter Property="Foreground" Value="#94A3B8"/>
                                                                             <Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding IsChecked}" Value="True">
                                                                                     <Setter Property="TextDecorations" Value="Strikethrough"/>
-                                                                                    <Setter Property="Foreground" Value="#B2BEC3"/>
+                                                                                    <Setter Property="Foreground" Value="#475569"/>
                                                                                 </DataTrigger>
                                                                             </Style.Triggers>
                                                                         </Style>
@@ -213,25 +263,76 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
-                                                <!-- 次级清单进度 + 提醒时间 -->
-                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                    <!-- 进度指示 -->
-                                                    <TextBlock Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVisConverter}}"
-                                                               FontSize="10" Foreground="#74B9FF" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                               Text="{Binding SubTaskProgressText, Mode=OneWay}"/>
-                                                    <!-- 提醒时间 -->
-                                                    <TextBlock Text="{Binding RemindTimeText}" FontSize="10" Foreground="#B2BEC3" VerticalAlignment="Center"/>
+                                                <!-- 进度 -->
+                                                <TextBlock Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVisConverter}}"
+                                                           FontSize="10" Foreground="#60A5FA" Margin="0,2,0,0"
+                                                           Text="{Binding SubTaskProgressText, Mode=OneWay}"/>
+
+                                                <!-- 选中时：时间详情紧贴任务标题下方 -->
+                                                <StackPanel Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisConverter}}"
+                                                            Margin="0,4,0,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding RemindTimeText}" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding AdditionalRemindTimeSummary}" FontSize="11" Foreground="#64748B" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="目标：" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding TargetDateText}" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                                        <Border Background="{Binding CountdownColor}" CornerRadius="10" Padding="5,1" Margin="6,0,0,0"
+                                                                Visibility="{Binding HasCountdown, Converter={StaticResource BoolToVisConverter}}">
+                                                            <TextBlock Text="{Binding CountdownText}" FontSize="10" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <!-- 创建时间 -->
+                                                    <TextBlock Text="{Binding CreatedTimeText}" FontSize="11" Foreground="#64748B" 
+                                                               VerticalAlignment="Center" Margin="0,2,0,0"
+                                                               Visibility="{Binding CreatedTimeVisibility}"/>
                                                 </StackPanel>
                                             </StackPanel>
 
-                                            <!-- 右侧：操作按钮 -->
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="4,0,0,0">
-                                                <Button Content="✏️" Style="{StaticResource ActionButtonStyle}" Click="BtnEdit_Click" Tag="{Binding}" ToolTip="编辑"/>
-                                                <Button Content="✓" Style="{StaticResource ActionButtonStyle}" Click="BtnComplete_Click" Tag="{Binding}" ToolTip="完成" Foreground="#00B894" FontWeight="Bold"/>
-                                                <Button Content="🗑️" Style="{StaticResource ActionButtonStyle}" Click="BtnDelete_Click" Tag="{Binding}" ToolTip="删除"/>
+                                            <!-- 右侧按钮区 -->
+                                            <StackPanel Grid.Row="0" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <!-- 未选中：完成按钮 + 日期倒数 -->
+                                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsNotSelected, Converter={StaticResource BoolToVisConverter}}">
+                                                    <Border Background="{Binding CountdownColor}" CornerRadius="10" Padding="6,2" Margin="0,0,6,0"
+                                                            Visibility="{Binding HasCountdown, Converter={StaticResource BoolToVisConverter}}">
+                                                        <TextBlock Text="{Binding CountdownText}" FontSize="10" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <Button Content="✓" Style="{StaticResource CircleButtonStyle}" Background="#22C55E"
+                                                            Click="BtnComplete_Click" Tag="{Binding}" ToolTip="完成"
+                                                            Foreground="White" FontWeight="Bold" FontSize="14"/>
+                                                </StackPanel>
+
+                                                <!-- 选中：圆形彩色按钮组 - 两行显示 -->
+                                                <StackPanel Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisConverter}}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Content="✓" Style="{StaticResource CircleButtonStyle}" Background="#22C55E"
+                                                                Click="BtnComplete_Click" Tag="{Binding}" ToolTip="完成"
+                                                                Foreground="White" FontWeight="Bold" FontSize="14"/>
+                                                        <Button Content="✎" Style="{StaticResource CircleButtonStyle}" Background="#3B82F6"
+                                                                Click="BtnEdit_Click" Tag="{Binding}" ToolTip="编辑"
+                                                                Foreground="White" FontWeight="Bold" FontSize="13"/>
+                                                        <Button Content="📌" Style="{StaticResource CircleButtonStyle}" Background="#F59E0B"
+                                                                Click="BtnPin_Click" Tag="{Binding}" ToolTip="置顶"
+                                                                FontSize="12"/>
+                                                    </StackPanel>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                        <Button Content="⏰" Style="{StaticResource CircleButtonStyle}" Background="#0EA5E9"
+                                                                Click="BtnQuickAddReminder_Click" Tag="{Binding}" ToolTip="提醒"
+                                                                FontSize="12"/>
+                                                        <Button Content="✕" Style="{StaticResource CircleButtonStyle}" Background="#EF4444"
+                                                                Click="BtnDelete_Click" Tag="{Binding}" ToolTip="删除"
+                                                                Foreground="White" FontWeight="Bold" FontSize="13"/>
+                                                    </StackPanel>
+                                                </StackPanel>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter TargetName="TaskCard" Property="Style" Value="{StaticResource SelectedCardStyle}"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -239,37 +340,25 @@
                 </StackPanel>
 
                 <!-- 展开/收起按钮 -->
-                <Button Grid.Column="1"
-                        x:Name="ToggleButton"
-                        Width="28"
-                        Background="Transparent"
-                        Click="ToggleButton_Click"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Cursor="Hand"
-                        MouseEnter="ToggleButton_MouseEnter"
-                        MouseLeave="ToggleButton_MouseLeave">
-                    <Border x:Name="ToggleButtonBorder" Background="Transparent" CornerRadius="6" Padding="4">
-                        <TextBlock x:Name="ToggleText"
-                                   Text="»"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   Foreground="#B2BEC3"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
+                <Button Grid.Column="1" x:Name="ToggleButton" Width="20" Background="Transparent"
+                        Click="ToggleButton_Click" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Cursor="Hand" MouseEnter="ToggleButton_MouseEnter" MouseLeave="ToggleButton_MouseLeave"
+                        BorderThickness="0">
+                    <Border x:Name="ToggleButtonBorder" Background="Transparent" CornerRadius="6" Padding="2">
+                        <TextBlock x:Name="ToggleText" Text="»" FontSize="12" FontWeight="Bold"
+                                   Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                 </Button>
 
                 <!-- 已完成区域 -->
                 <StackPanel Grid.Column="2" x:Name="CompletedPanel" Visibility="Collapsed">
-                    <StackPanel Orientation="Horizontal" Margin="7,0,0,8">
-                        <TextBlock Text="✅ 已完成" FontSize="13" FontWeight="SemiBold" Foreground="#636E72" VerticalAlignment="Center"/>
-                        <Button x:Name="BtnClearCompleted" Content="清空" Width="50" Height="24" FontSize="11"
-                                Margin="10,0,0,0" Click="BtnClearCompleted_Click"
-                                Cursor="Hand" Foreground="#B2BEC3"
-                                Style="{StaticResource HeaderButtonStyle}"/>
+                    <StackPanel Orientation="Horizontal" Margin="8,0,0,10">
+                        <TextBlock Text="✅ 已完成" FontSize="14" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                        <Button x:Name="BtnClearCompleted" Content="清空" Width="44" Height="24" FontSize="11"
+                                Margin="10,0,0,0" Click="BtnClearCompleted_Click" Cursor="Hand" Foreground="#64748B"
+                                Background="Transparent" BorderThickness="0"/>
                     </StackPanel>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500" Margin="7,0,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="500" Margin="8,0,0,0">
                         <ItemsControl x:Name="CompletedTasksList">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -280,23 +369,27 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#B2BEC3" TextDecorations="Strikethrough" FontSize="13"/>
-
-                                                <!-- 已完成任务的次级清单 -->
+                                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Foreground="#475569" TextDecorations="Strikethrough" FontSize="13"/>
                                                 <ItemsControl ItemsSource="{Binding SubTasks}" Margin="4,4,0,0" Visibility="{Binding HasSubTasks, Converter={StaticResource BoolToVisConverter}}">
                                                     <ItemsControl.ItemTemplate>
                                                         <DataTemplate>
                                                             <StackPanel Orientation="Horizontal" Margin="0,1,0,1">
-                                                                <TextBlock Text="✓" FontSize="11" Foreground="#00B894" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="11" Foreground="#B2BEC3" TextDecorations="Strikethrough"/>
+                                                                <TextBlock Text="✓" FontSize="10" Foreground="#22C55E" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="11" Foreground="#475569" TextDecorations="Strikethrough"/>
                                                             </StackPanel>
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-
-                                                <TextBlock Text="{Binding CompletedTimeText}" FontSize="10" Foreground="#DFE6E9" Margin="0,4,0,0"/>
+                                                <TextBlock Text="{Binding CompletedTimeText}" FontSize="10" Foreground="#334155" Margin="0,4,0,0"/>
                                             </StackPanel>
-                                            <Button Content="🗑️" Style="{StaticResource ActionButtonStyle}" Grid.Column="1" Click="BtnDeleteCompleted_Click" Tag="{Binding}" ToolTip="删除" Opacity="0.6"/>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                                <Button Content="↩" Style="{StaticResource CircleButtonStyle}" Background="#3B82F6"
+                                                        Click="BtnRestore_Click" Tag="{Binding}" ToolTip="恢复"
+                                                        Foreground="White" FontWeight="Bold" FontSize="12" Width="26" Height="26"/>
+                                                <Button Content="✕" Style="{StaticResource CircleButtonStyle}" Background="#EF4444"
+                                                        Click="BtnDeleteCompleted_Click" Tag="{Binding}" ToolTip="删除"
+                                                        Foreground="White" FontWeight="Bold" FontSize="12" Width="26" Height="26" Opacity="0.6"/>
+                                            </StackPanel>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
