@@ -5,6 +5,7 @@ namespace DesktopToDo.Models
         LightGreen,
         White,
         Gray,
+        Dark,
         Custom
     }
 }
