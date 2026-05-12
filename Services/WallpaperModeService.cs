@@ -8,7 +8,7 @@ namespace DesktopToDo.Services
     public static class WallpaperModeService
     {
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindowEx(IntPtr hP, IntPtr hC, string sC, string sW);
+        private static extern IntPtr FindWindowEx(IntPtr hP, IntPtr hC, string? sC, string? sW);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
@@ -38,7 +38,6 @@ namespace DesktopToDo.Services
                 // 如果没找到，可能在 WorkerW 下面（Win10/11）
                 if (_desktopWindow == IntPtr.Zero)
                 {
-                    // 枚举找 WorkerW
                     _desktopWindow = FindDesktopWindowViaEnum();
                 }
 

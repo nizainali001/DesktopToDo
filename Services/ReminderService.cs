@@ -9,11 +9,11 @@ namespace DesktopToDo.Services
     public class ReminderService
     {
         private readonly DispatcherTimer _timer;
-        private readonly HashSet<Guid> _remindedTasks = new HashSet<Guid>();
+        private readonly HashSet<string> _remindedKeys = new HashSet<string>();
         private List<TaskItem> _tasks = new List<TaskItem>();
         private int _advanceMinutes = 5;
 
-        public event Action<TaskItem>? OnRemind;
+        public event Action<TaskItem, DateTime>? OnRemind;
 
         public ReminderService()
         {
@@ -50,28 +50,49 @@ namespace DesktopToDo.Services
 
             foreach (var task in _tasks)
             {
-                if (!task.RemindTime.HasValue || _remindedTasks.Contains(task.TaskId))
-                    continue;
+                // 检查主提醒时间
+                CheckSingleRemindTime(task, task.RemindTime, now, "main");
 
-                var remindTime = task.RemindTime.Value;
-                var advanceTime = remindTime.AddMinutes(-_advanceMinutes);
-
-                if (now >= advanceTime && now < remindTime.AddMinutes(1))
+                // 检查额外提醒时间
+                if (task.AdditionalRemindTimes != null)
                 {
-                    _remindedTasks.Add(task.TaskId);
-                    OnRemind?.Invoke(task);
+                    for (int i = 0; i < task.AdditionalRemindTimes.Count; i++)
+                    {
+                        CheckSingleRemindTime(task, task.AdditionalRemindTimes[i], now, $"add_{i}");
+                    }
                 }
+            }
+        }
+
+        private void CheckSingleRemindTime(TaskItem task, DateTime? remindTime, DateTime now, string keySuffix)
+        {
+            if (!remindTime.HasValue) return;
+
+            var key = $"{task.TaskId}_{keySuffix}";
+            if (_remindedKeys.Contains(key)) return;
+
+            var rt = remindTime.Value;
+            var advanceTime = rt.AddMinutes(-_advanceMinutes);
+
+            if (now >= advanceTime && now < rt.AddMinutes(1))
+            {
+                _remindedKeys.Add(key);
+                OnRemind?.Invoke(task, rt);
             }
         }
 
         public void MarkReminded(Guid taskId)
         {
-            _remindedTasks.Add(taskId);
+            _remindedKeys.Add($"{taskId}_main");
         }
 
         public void ClearReminded(Guid taskId)
         {
-            _remindedTasks.Remove(taskId);
+            var keysToRemove = _remindedKeys.Where(k => k.StartsWith($"{taskId}_")).ToList();
+            foreach (var key in keysToRemove)
+            {
+                _remindedKeys.Remove(key);
+            }
         }
     }
 }

@@ -8,28 +8,46 @@ namespace DesktopToDo.Services
 {
     public static class TaskService
     {
-        public static TaskItem CreateTask(string content, DateTime? remindTime, PriorityLevel priority, RepeatType repeat, RepeatRuleDetail? repeatDetail = null)
+        public static TaskItem CreateTask(string content, DateTime? remindTime, PriorityLevel priority, RepeatType repeat, RepeatRuleDetail? repeatDetail = null, List<DateTime>? additionalRemindTimes = null, DateTime? targetDate = null)
         {
             return new TaskItem
             {
                 TaskId = Guid.NewGuid(),
                 Content = content,
                 RemindTime = remindTime,
+                AdditionalRemindTimes = additionalRemindTimes ?? new List<DateTime>(),
                 Priority = priority,
                 Repeat = repeat,
                 RepeatDetail = repeatDetail ?? new RepeatRuleDetail(),
                 CreatedTime = DateTime.Now,
                 IsCompleted = false,
-                CompletedTime = null
+                CompletedTime = null,
+                TargetDate = targetDate,
+                IsPinned = false
             };
         }
 
-        public static List<TaskItem> GetPendingTasks(List<TaskItem> allTasks)
+        public static List<TaskItem> GetPendingTasks(List<TaskItem> allTasks, TaskSortType sortType = TaskSortType.Default)
         {
-            return allTasks.Where(t => !t.IsCompleted)
-                          .OrderBy(t => t.RemindTime ?? DateTime.MaxValue)
-                          .ThenBy(t => t.Priority, new PriorityComparer())
-                          .ToList();
+            var query = allTasks.Where(t => !t.IsCompleted);
+            
+            return sortType switch
+            {
+                TaskSortType.CreatedTime => query
+                    .OrderByDescending(t => t.IsPinned)
+                    .ThenBy(t => t.CreatedTime)
+                    .ToList(),
+                TaskSortType.RemindTime => query
+                    .OrderByDescending(t => t.IsPinned)
+                    .ThenBy(t => t.RemindTime ?? DateTime.MaxValue)
+                    .ThenBy(t => t.Priority, new PriorityComparer())
+                    .ToList(),
+                _ => query
+                    .OrderByDescending(t => t.IsPinned)
+                    .ThenBy(t => t.Priority, new PriorityComparer())
+                    .ThenBy(t => t.RemindTime ?? DateTime.MaxValue)
+                    .ToList()
+            };
         }
 
         private class PriorityComparer : IComparer<PriorityLevel>
@@ -71,12 +89,15 @@ namespace DesktopToDo.Services
                 TaskId = task.TaskId,
                 Content = task.Content,
                 RemindTime = task.RemindTime,
+                AdditionalRemindTimes = task.AdditionalRemindTimes,
                 Priority = task.Priority,
                 Repeat = task.Repeat,
                 RepeatDetail = task.RepeatDetail,
                 CreatedTime = task.CreatedTime,
                 IsCompleted = true,
-                CompletedTime = DateTime.Now
+                CompletedTime = DateTime.Now,
+                TargetDate = task.TargetDate,
+                IsPinned = task.IsPinned
             };
 
             return completedTask;
@@ -101,18 +122,54 @@ namespace DesktopToDo.Services
                     TaskId = Guid.NewGuid(),
                     Content = completedTask.Content,
                     RemindTime = GetNextRemindTime(completionTime, completedTask.Repeat, completedTask.RepeatDetail, completedTask.RemindTime),
+                    AdditionalRemindTimes = completedTask.AdditionalRemindTimes != null
+                        ? new List<DateTime>(completedTask.AdditionalRemindTimes)
+                        : new List<DateTime>(),
                     Priority = completedTask.Priority,
                     Repeat = completedTask.Repeat,
                     RepeatDetail = completedTask.RepeatDetail,
                     CreatedTime = DateTime.Now,
                     IsCompleted = false,
-                    CompletedTime = null
+                    CompletedTime = null,
+                    TargetDate = completedTask.TargetDate,
+                    IsPinned = completedTask.IsPinned
                 };
                 newTasks.Add(newTask);
-                pendingContents.Add(completedTask.Content);
+                pendingContents.Add(newTask.Content);
             }
 
             return newTasks;
+        }
+
+        public static string GetCountdownText(DateTime? targetDate)
+        {
+            if (!targetDate.HasValue) return "";
+
+            var today = DateTime.Today;
+            var target = targetDate.Value.Date;
+            var days = (target - today).Days;
+
+            if (days < 0)
+                return $"已过期{-days}天";
+            else if (days == 0)
+                return "今天到期";
+            else
+                return $"还剩{days}天";
+        }
+
+        public static string GetCountdownColor(DateTime? targetDate)
+        {
+            if (!targetDate.HasValue) return "";
+
+            var today = DateTime.Today;
+            var target = targetDate.Value.Date;
+            var days = (target - today).Days;
+
+            if (days < 0) return "#FF3333";
+            if (days == 0) return "#FF6B35";
+            if (days <= 3) return "#FF8C00";
+            if (days <= 7) return "#FFD700";
+            return "#00B894";
         }
 
         private static bool IsTimeToRestore(DateTime completionTime, RepeatType repeatType, RepeatRuleDetail? repeatDetail)
